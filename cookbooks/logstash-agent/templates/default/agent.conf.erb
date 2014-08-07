@@ -1,0 +1,29 @@
+input {
+  file {
+    type => "apache-access"
+    path => "/var/log/apache2/other_vhosts_access.log"
+  }
+
+  file {
+    type => "apache-error"
+    path => "/var/log/apache2/error.log"
+  }
+}
+
+filter {
+  grok {
+    match => { "message" => "%{COMBINEDAPACHELOG}" }
+  }
+  date {
+  match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" ]
+  }
+}
+
+output {
+#  stdout { }
+  redis {
+    host => "192.168.1.200"
+    data_type => "list"
+    key => "logstash"
+  }
+}
