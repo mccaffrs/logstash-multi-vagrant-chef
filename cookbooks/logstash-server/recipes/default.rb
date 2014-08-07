@@ -140,7 +140,7 @@ end
 
 # redis config 
 
-template '/etc/redis-server/redis.conf' do
+template '/etc/redis/redis.conf' do
   user 'redis'
   group 'redis'
   mode '0644'
