@@ -21,6 +21,12 @@ user "logstash" do
   shell "/bin/bash"
 end
 
+group "adm" do
+  action :modify
+  members "logstash"
+  append true
+end
+
 # create directories
 
 directory "/opt/logstash-#{node[:logstash][:version]}/" do
@@ -51,6 +57,7 @@ bash 'install logstash' do
     wget https://download.elasticsearch.org/logstash/logstash/logstash-#{node[:logstash][:version]}.tar.gz
     tar -zxf logstash-#{node[:logstash][:version]}.tar.gz
     mv logstash-#{node[:logstash][:version]}.tar.gz /tmp/
+	chown -R logstash.logstash /opt/logstash-#{node[:logstash][:version]}/
   EOH
 end
 
@@ -76,4 +83,26 @@ template "/etc/logstash-#{node[:logstash][:version]}/agent.conf" do
   group 'logstash'
   mode '0644'
   #notifies :restart, 'service[logstash]'   #(this tells service to restart if config changes)
+end
+
+# upstart init script
+template "logstash-agent.conf" do
+  path "/etc/init/logstash-agent.conf"
+  source "upstart-logstash-agent.conf.erb"
+  owner "root"
+  group "root"
+  mode "0644"
+end
+
+# service starts
+
+# use upstart on Ubuntu to start logstash agent
+service "logstash-agent" do
+  case node["platform"]
+  when "ubuntu"
+    if node["platform_version"].to_f >= 9.10
+      provider Chef::Provider::Service::Upstart
+    end
+  end
+  action [:enable, :start]
 end

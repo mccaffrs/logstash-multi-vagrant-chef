@@ -56,7 +56,7 @@ directory "/var/log/logstash-server/" do
   mode '0755'
 end
 
-directory "/etc/redis-server" do
+directory "/etc/redis" do
   user 'redis'
   group 'redis'
   mode '0755'
@@ -144,7 +144,7 @@ template '/etc/redis/redis.conf' do
   user 'redis'
   group 'redis'
   mode '0644'
-  #notifies :restart, 'service[redis-server]'   #(this tells service to restart if config changes)
+  notifies :restart, 'service[redis-server]'   #(this tells service to restart if config changes)
 end
 
 # Logstash config

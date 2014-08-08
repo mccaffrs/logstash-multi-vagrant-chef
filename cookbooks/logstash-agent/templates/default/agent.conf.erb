@@ -2,11 +2,15 @@ input {
   file {
     type => "apache-access"
     path => "/var/log/apache2/other_vhosts_access.log"
+    sincedb_path => "/opt/logstash-<%= node[:logstash][:version] %>/"
+    start_position => "beginning"
   }
 
   file {
     type => "apache-error"
     path => "/var/log/apache2/error.log"
+    sincedb_path => "/opt/logstash-<%= node[:logstash][:version] %>/sincedb.db2"
+    start_position => "beginning"
   }
 }
 
