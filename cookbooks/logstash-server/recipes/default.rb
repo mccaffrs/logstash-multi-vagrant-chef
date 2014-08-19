@@ -165,7 +165,7 @@ end
 
 # service starts
 
-# upstart init script
+# upstart init script for logstash-server
 template "logstash-server.conf" do
   path "/etc/init/logstash-server.conf"
   source "upstart-logstash-server.conf.erb"
@@ -185,14 +185,39 @@ service "logstash-server" do
   action [:enable, :start]
 end
 
-service "elasticsearch" do
-  action [:enable, :start]
+
+# disable the default init.d script for redis:
+execute "update-rc.d" do
+  command "update-rc.d redis-server disable"
+  ignore_failure true
+  action :run
 end
 
+# upstart init script for redis-server
+template "redis-server.conf" do
+  path "/etc/init/redis-server.conf"
+  source "upstart-redis-server.conf.erb"
+  owner "root"
+  group "root"
+  mode "0644"
+end
+
+# use upstart on Ubuntu to start redis-server
 service "redis-server" do
+  case node["platform"]
+  when "ubuntu"
+    if node["platform_version"].to_f >= 9.10
+      provider Chef::Provider::Service::Upstart
+    end
+  end
   action [:enable, :start]
 end
 
 service "nginx" do
   action [:enable, :start]
 end
+
+service "elasticsearch" do
+  action [:enable, :start]
+end
+
